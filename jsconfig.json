@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "noEmit": true
+  },
+  "typeAcquisition": {
+    "include": ["jest", "node"]
+  },
+  "include": [
+    "backend/test/**/*.js",
+    "backend/src/model/Filme.js",
+    "backend/src/service/TmdbService.js",
+    "backend/src/service/EmbedMoviesService.js"
+  ]
+}

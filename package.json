@@ -4,18 +4,21 @@
   "description": "Site de catálogos de filmes gratuitos.",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rogeriosilvaf/catalofimes.git"
   },
   "keywords": [],
-  "author": "",
   "license": "ISC",
   "type": "module",
   "bugs": {
     "url": "https://github.com/rogeriosilvaf/catalofimes/issues"
   },
-  "homepage": "https://github.com/rogeriosilvaf/catalofimes#readme"
+  "homepage": "https://github.com/rogeriosilvaf/catalofimes#readme",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.5.2"
+  }
 }

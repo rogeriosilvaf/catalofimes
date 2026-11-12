@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="catalofimes" />
+        <module name="catalofilmes" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="catalofimes" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
