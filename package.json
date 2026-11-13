@@ -4,7 +4,8 @@
   "description": "Site de catálogos de filmes gratuitos.",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node backend/dist/app.js"
   },
   "repository": {
     "type": "git",
@@ -17,5 +18,13 @@
   "bugs": {
     "url": "https://github.com/rogeriosilvaf/catalofimes/issues"
   },
-  "homepage": "https://github.com/rogeriosilvaf/catalofimes#readme"
+  "homepage": "https://github.com/rogeriosilvaf/catalofimes#readme",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  }
 }
