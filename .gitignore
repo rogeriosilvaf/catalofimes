@@ -1,2 +1,4 @@
 node_modules/
 report.md
+dist/
+.env

@@ -1,8 +1,17 @@
-import express, { type Express, type Request, type Response } from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
+import { rotaFilmes } from './routes/filmes.js';
 
-const app: Express = express();
-const PORT: number = 3000;
+const app = express();
+const PORT = 3000;
 
-app.get('/',(req: Request, res: Response)=>{res.send('Hello World!');});
+app.use('/api/filmes', rotaFilmes);
+app.use(express.static('frontend'));
 
-app.listen(PORT, ()=>{console.log(`O servidor na porta: http://localhost:${PORT}`);});
+app.use((erro: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error(erro.message);
+    res.status(500).json({ erro: 'Não foi possível buscar os filmes agora' });
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
