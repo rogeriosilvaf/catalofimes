@@ -2,6 +2,11 @@ body {
     margin: 0;
     padding: 0;
     background-color: #ffffff; /* #121212*/
+    background-image: url('../src/imagem/Fundo da página.png');
+    background-size: cover;                       /* a imagem cobre a tela toda */
+    background-position: center;                  /* centraliza a imagem */
+    background-repeat: no-repeat;                 /* não repete */
+    background-attachment: fixed;
     font-family: 'poppins', sans-serif;
 }
 
@@ -16,6 +21,15 @@ header.topo {
     display: flex;
     justify-content: space-between; 
     align-items: center;            
+}
+
+section h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: #ffffff;         
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
 .menu a {
@@ -64,7 +78,7 @@ section {
 
 .divCards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
 }
 
@@ -83,7 +97,7 @@ section {
 
 .card img {
     width: 100%;
-    aspect-ratio: 2 / 3;
+    aspect-ratio: 2 / 2;
     object-fit: cover;
     display: block;
 }
