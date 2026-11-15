@@ -4,8 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CataloFilmes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    
+    <header class="topo">
+        <nav class="menu">
+            <a href="#filmes">Filmes</a>
+            <a href="#series">Séries</a>
+        </nav>
+        <a class="logo-container" href="index.html"><img src="src/imagem/Logo- catalofilmes2.png" alt="CataloFilmes"></a>
+        <div class="busca-container">
+            <input id="busca" type="search" placeholder="Pesquisar um filme ou série..." autocomplete="off">
+        </div>
+    </header>
+
+    <main>
+        <section id="filmes">
+            <h2>Filmes</h2>
+            <div id="lista-filmes" class="divCards"></div>
+        </section>
+        <section id="series">
+            <h2>Séries</h2>
+            <div id="lista-series" class="divCards"></div>
+        </section>
+        <p id="aviso" class="aviso" hidden></p>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>
