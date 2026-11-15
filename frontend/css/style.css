@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: #ffffff; /* #121212*/
-    font-family: sans-serif;
+    font-family: 'poppins', sans-serif;
 }
 
 
@@ -19,6 +19,7 @@ header.topo {
 }
 
 .menu a {
+    font-family: 'Poppins', sans-serif;
     color: #ffffff;
     text-decoration: none;
     margin-right: 25px;
