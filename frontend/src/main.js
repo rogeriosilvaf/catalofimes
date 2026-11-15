@@ -1,5 +1,4 @@
 import { listar } from "./api.js";
-import { filtrar } from "./busca.js";
 
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -18,23 +17,66 @@ function card(x) {
 }
 
 const listas = { filme: [], serie: [] };
+const populares = { filme: [], serie: [] };
+let buscaAtual = 0;
+let temporizadorBusca;
 
-function desenhar(texto = "") {
+function desenhar() {
   for (const tipo of ["filme", "serie"]) {
     const alvo = document.getElementById(tipo === "filme" ? "lista-filmes" : "lista-series");
-    const itens = filtrar(listas[tipo], texto);
+    const itens = listas[tipo];
     alvo.innerHTML = itens.map(card).join("") || `<p class="aviso">Nada encontrado.</p>`;
   }
 }
 
-document.getElementById("busca").addEventListener("input", (e) => desenhar(e.target.value.trim().toLowerCase()));
+function mostrarAviso(texto) {
+  const aviso = document.getElementById("aviso");
+  aviso.hidden = !texto;
+  aviso.textContent = texto;
+}
+
+document.getElementById("busca").addEventListener("input", (e) => {
+  const texto = e.target.value.trim();
+  const requisicao = ++buscaAtual;
+  clearTimeout(temporizadorBusca);
+
+  temporizadorBusca = setTimeout(async () => {
+    if (requisicao !== buscaAtual) return;
+    if (!texto) {
+      listas.filme = populares.filme;
+      listas.serie = populares.serie;
+      mostrarAviso("");
+      desenhar();
+      return;
+    }
+
+    try {
+      const [filmes, series] = await Promise.all([
+        listar("filme", texto),
+        listar("serie", texto),
+      ]);
+      if (requisicao !== buscaAtual) return;
+      listas.filme = filmes;
+      listas.serie = series;
+      mostrarAviso("");
+      desenhar();
+    } catch (erro) {
+      if (requisicao !== buscaAtual) return;
+      console.error(erro);
+      mostrarAviso("Não foi possível pesquisar no catálogo. Tente novamente.");
+    }
+  }, 300);
+});
 
 try {
-  [listas.filme, listas.serie] = await Promise.all([listar("filme"), listar("serie")]);
-  desenhar();
+  [populares.filme, populares.serie] = await Promise.all([listar("filme"), listar("serie")]);
+  if (!document.getElementById("busca").value.trim()) {
+    listas.filme = populares.filme;
+    listas.serie = populares.serie;
+    mostrarAviso("");
+    desenhar();
+  }
 } catch (erro) {
   console.error(erro);
-  const aviso = document.getElementById("aviso");
-  aviso.hidden = false;
-  aviso.textContent = "Não foi possível carregar o catálogo. Confira se o servidor está rodando.";
+  mostrarAviso("Não foi possível carregar o catálogo. Confira se o servidor está rodando.");
 }

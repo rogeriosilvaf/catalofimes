@@ -6,6 +6,29 @@ const tipo = document.body.dataset.tipo;
 const id = new URLSearchParams(location.search).get("id");
 const alvo = document.getElementById("detalhe");
 
+function playerInternetArchive(link, titulo) {
+  if (!link || tipo !== "filme") return "";
+
+  let url;
+  try {
+    url = new URL(link);
+  } catch {
+    return "";
+  }
+
+  if (url.protocol !== "https:" || url.hostname !== "archive.org" || !url.pathname.startsWith("/embed/")) {
+    return "";
+  }
+
+  return `
+    <div class="player-internet-archive">
+      <div class="player-frame">
+        <iframe src="${esc(url.href)}" title="Player de ${esc(titulo)} no Internet Archive"
+          loading="lazy" referrerpolicy="no-referrer" allow="fullscreen" allowfullscreen></iframe>
+      </div>
+    </div>`;
+}
+
 try {
   const x = await detalhar(tipo, id);
   if (!x) throw new Error("não encontrado");
@@ -24,9 +47,12 @@ try {
       ${x.original && x.original !== x.titulo ? `<p class="original">${esc(x.original)}</p>` : ""}
       <p class="meta">${meta}</p>
       <div class="generos">${x.generos.map((g) => `<span>${esc(g)}</span>`).join("")}</div>
+      ${tipo === "serie" && x.criadores ? `<p><strong>Criada por:</strong> ${esc(x.criadores)}</p>` : ""}
+      ${tipo === "filme" && x.diretor ? `<p><strong>Direção:</strong> ${esc(x.diretor)}</p>` : ""}
       <h2>Sinopse</h2>
       <p class="sinopse">${esc(x.sinopse)}</p>
-    </div>`;
+    </div>
+    ${playerInternetArchive(x.linkAssistir, x.titulo)}`;
 } catch (erro) {
   console.error(erro);
   alvo.innerHTML = `<p class="aviso">Não encontramos este título. <a href="index.html">Voltar ao catálogo</a></p>`;

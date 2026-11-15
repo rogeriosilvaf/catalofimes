@@ -1,5 +1,5 @@
 import { FILMES_PUBLICOS } from './data/dados.js';
-import type { DetalheTmdb, Filme, FilmeResumo, FilmeTmdb, ListaTmdb } from './tipos.js';
+import type { GenerosTmdb, ItemCatalogo, ItemTmdb, ListaTmdb, TipoCatalogo } from './tipos.js';
 
 const URL_API = 'https://api.themoviedb.org/3';
 const URL_IMAGEM = 'https://image.tmdb.org/t/p/w500';
@@ -22,35 +22,74 @@ async function chamarTmdb<T>(caminho: string, parametros: Record<string, string>
     return (await resposta.json()) as T;
 }
 
-function paraResumo(filme: FilmeTmdb): FilmeResumo {
+const cacheGeneros = new Map<TipoCatalogo, Promise<Map<number, string>>>();
+
+function obterGeneros(tipo: TipoCatalogo): Promise<Map<number, string>> {
+    const cacheado = cacheGeneros.get(tipo);
+    if (cacheado) return cacheado;
+
+    const caminho = tipo === 'filme' ? '/genre/movie/list' : '/genre/tv/list';
+    const requisicao = chamarTmdb<GenerosTmdb>(caminho).then((resposta) => {
+        if (!resposta) throw new Error(`O TMDB não retornou os gêneros de ${tipo}`);
+        return new Map(resposta.genres.map((genero): [number, string] => [genero.id, genero.name]));
+    }).catch((erro: unknown) => {
+        cacheGeneros.delete(tipo);
+        throw erro;
+    });
+
+    cacheGeneros.set(tipo, requisicao);
+    return requisicao;
+}
+
+function paraCatalogo(item: ItemTmdb, tipo: TipoCatalogo, generos: Map<number, string>): ItemCatalogo {
+    const generoItem = item.genres?.map((genero) => genero.name)
+        ?? (item.genre_ids ?? []).flatMap((id) => {
+            const nome = generos.get(id);
+            return nome ? [nome] : [];
+        });
+
+    const titulo = item.title ?? item.name ?? 'Sem título';
+    const diretor = tipo === 'filme'
+        ? item.credits?.crew?.find((pessoa) => pessoa.job === 'Director')?.name ?? ''
+        : '';
+
     return {
-        id: filme.id,
-        titulo: filme.title,
-        ano: filme.release_date ? filme.release_date.slice(0, 4) : '',
-        poster: filme.poster_path ? URL_IMAGEM + filme.poster_path : '',
+        id: item.id,
+        titulo,
+        titulo_original: item.original_title ?? item.original_name ?? '',
+        ano: (item.release_date ?? item.first_air_date ?? '').slice(0, 4),
+        poster: item.poster_path ? URL_IMAGEM + item.poster_path : '',
+        generos: generoItem,
+        nota: item.vote_average ?? null,
+        sinopse: item.overview ?? '',
+        duracao: item.runtime ? `${item.runtime} min` : '',
+        temporadas: item.number_of_seasons ?? null,
+        diretor,
+        criadores: (item.created_by ?? []).map((pessoa) => pessoa.name).join(', '),
+        linkAssistir: tipo === 'filme' ? FILMES_PUBLICOS[item.id] ?? '' : '',
     };
 }
 
-export async function listarPopulares(): Promise<FilmeResumo[]> {
-    const lista = await chamarTmdb<ListaTmdb>('/movie/popular');
-    return lista ? lista.results.map(paraResumo) : [];
+function caminhoLista(tipo: TipoCatalogo, busca: string): string {
+    if (busca) return tipo === 'filme' ? '/search/movie' : '/search/tv';
+    return tipo === 'filme' ? '/movie/popular' : '/tv/popular';
 }
 
-export async function buscarFilmes(texto: string): Promise<FilmeResumo[]> {
-    const lista = await chamarTmdb<ListaTmdb>('/search/movie', { query: texto });
-    return lista ? lista.results.map(paraResumo) : [];
+export async function listarTitulos(tipo: TipoCatalogo, busca = ''): Promise<ItemCatalogo[]> {
+    const texto = busca.trim();
+    const parametros = texto ? { query: texto, include_adult: 'false' } : {};
+    const [lista, generos] = await Promise.all([
+        chamarTmdb<ListaTmdb>(caminhoLista(tipo, texto), parametros),
+        obterGeneros(tipo),
+    ]);
+
+    return lista ? lista.results.map((item) => paraCatalogo(item, tipo, generos)) : [];
 }
 
-export async function obterFilme(id: number): Promise<Filme | null> {
-    const filme = await chamarTmdb<DetalheTmdb>(`/movie/${id}`, { append_to_response: 'credits' });
-    if (!filme) return null;
+export async function obterTitulo(tipo: TipoCatalogo, id: number): Promise<ItemCatalogo | null> {
+    const caminho = tipo === 'filme' ? `/movie/${id}` : `/tv/${id}`;
+    const item = await chamarTmdb<ItemTmdb>(caminho, { append_to_response: 'credits' });
+    if (!item) return null;
 
-    const diretor = filme.credits.crew.find((pessoa) => pessoa.job === 'Director');
-
-    return {
-        ...paraResumo(filme),
-        diretor: diretor ? diretor.name : '',
-        sinopse: filme.overview,
-        linkAssistir: FILMES_PUBLICOS[filme.id] ?? '',
-    };
+    return paraCatalogo(item, tipo, new Map());
 }
