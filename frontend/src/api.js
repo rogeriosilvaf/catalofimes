@@ -1,29 +1,6 @@
-// ÚNICO arquivo que conversa com os dados. Quando o back-end estiver rodando:
-// 1) troque USAR_MOCK para false
-// 2) confira a porta em API_URL (veja backend/src/app.ts)
-// 3) confira as rotas abaixo (veja backend/src/routes/filmes.ts)
-const USAR_MOCK = true;
-const API_URL = "http://localhost:3000";
-const IMG_TMDB = "https://image.tmdb.org/t/p/w500";
-
-// Traduz qualquer formato (mock, TMDB cru ou back-end) para o formato do front.
-// Se o back-end usar outros nomes de campo, ajuste SÓ aqui.
-function normalizar(x, tipo) {
-  const data = x.release_date || x.first_air_date || "";
-  return {
-    id: x.id,
-    tipo,
-    titulo: x.titulo || x.title || x.name || "Sem título",
-    original: x.titulo_original || x.original_title || x.original_name || "",
-    ano: x.ano || data.slice(0, 4),
-    generos: (x.generos || x.genres || []).map((g) => g.name || g),
-    nota: x.nota ?? x.vote_average ?? null,
-    sinopse: x.sinopse || x.overview || "Sem descrição disponível.",
-    poster: x.poster || (x.poster_path ? IMG_TMDB + x.poster_path : null),
-    duracao: x.duracao || (x.runtime ? x.runtime + " min" : ""),
-    temporadas: x.temporadas || x.number_of_seasons || null,
-  };
-}
+// ÚNICO arquivo que conversa com o back-end (só filmes).
+// O back-end serve o site em http://localhost:3000, então o endereço é relativo.
+const API = "/api/filmes";
 
 async function pegar(url) {
   const r = await fetch(url);
@@ -31,19 +8,14 @@ async function pegar(url) {
   return r.json();
 }
 
-const rota = (tipo) => (tipo === "serie" ? "series" : "filmes");
-
-export async function listar(tipo) {
-  const dados = USAR_MOCK
-    ? (await pegar("mock.json"))[rota(tipo)]
-    : await pegar(`${API_URL}/${rota(tipo)}`);
-  return (Array.isArray(dados) ? dados : dados.results || []).map((x) => normalizar(x, tipo));
+// GET /api/filmes  ou  GET /api/filmes?busca=texto
+// -> [ { id, titulo, ano, poster } ]
+export function listarFilmes(busca = "") {
+  return pegar(API + (busca ? "?busca=" + encodeURIComponent(busca) : ""));
 }
 
-export async function detalhar(tipo, id) {
-  if (USAR_MOCK) {
-    const todos = await listar(tipo);
-    return todos.find((x) => String(x.id) === String(id));
-  }
-  return normalizar(await pegar(`${API_URL}/${rota(tipo)}/${encodeURIComponent(id)}`), tipo);
+// GET /api/filmes/:id
+// -> { id, titulo, ano, poster, diretor, sinopse, linkAssistir }
+export function buscarFilme(id) {
+  return pegar(API + "/" + encodeURIComponent(id));
 }

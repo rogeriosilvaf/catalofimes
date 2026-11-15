@@ -85,3 +85,8 @@ section h2 {
     .detalhe-poster { max-width: 260px; }
 }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+
+/* Detalhes: diretor e botão assistir */
+.diretor { margin: -6px 0 18px; color: var(--texto-suave); }
+.botao { display: inline-block; margin-top: 28px; padding: 14px 28px; background: var(--azul); color: #fff; font-weight: 600; border-radius: 6px; transition: filter .2s; }
+.botao:hover { filter: brightness(1.15); }

@@ -1,40 +1,35 @@
-import { listar } from "./api.js";
-import { filtrar } from "./busca.js";
+import { listarFilmes } from "./api.js";
 
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const lista = document.getElementById("lista-filmes");
+const aviso = document.getElementById("aviso");
 
-function card(x) {
-  const pagina = x.tipo === "serie" ? "serie.html" : "filme.html";
-  const info = x.tipo === "serie" && x.temporadas
-    ? `${x.temporadas} temporada${x.temporadas > 1 ? "s" : ""}` : x.ano;
-  const capa = x.poster
-    ? `<img src="${esc(x.poster)}" alt="Pôster de ${esc(x.titulo)}" loading="lazy">`
-    : `<div class="sem-poster">${esc(x.titulo)}</div>`;
-  const nota = x.nota ? `<span class="nota">★ ${Number(x.nota).toFixed(1)}</span>` : "";
-  return `<a class="card" href="${pagina}?id=${encodeURIComponent(x.id)}">
-    <div class="capa">${capa}${nota}</div>
-    <h3>${esc(x.titulo)}</h3>
-    <p>${esc(info)} · ${esc(x.generos[0] || "")}</p></a>`;
+function card(f) {
+  const capa = f.poster
+    ? `<img src="${esc(f.poster)}" alt="Pôster de ${esc(f.titulo)}" loading="lazy">`
+    : `<div class="sem-poster">${esc(f.titulo)}</div>`;
+  return `<a class="card" href="filme.html?id=${encodeURIComponent(f.id)}">
+    <div class="capa">${capa}</div>
+    <h3>${esc(f.titulo)}</h3>
+    <p>${esc(f.ano)}</p></a>`;
 }
 
-const listas = { filme: [], serie: [] };
-
-function desenhar(texto = "") {
-  for (const tipo of ["filme", "serie"]) {
-    const alvo = document.getElementById(tipo === "filme" ? "lista-filmes" : "lista-series");
-    const itens = filtrar(listas[tipo], texto);
-    alvo.innerHTML = itens.map(card).join("") || `<p class="aviso">Nada encontrado.</p>`;
+async function carregar(texto = "") {
+  try {
+    const filmes = await listarFilmes(texto);
+    lista.innerHTML = filmes.map(card).join("") || `<p class="aviso">Nenhum filme encontrado.</p>`;
+    aviso.hidden = true;
+  } catch (erro) {
+    console.error(erro);
+    aviso.hidden = false;
+    aviso.textContent = "Não foi possível carregar os filmes. O servidor está rodando? (npm start)";
   }
 }
 
-document.getElementById("busca").addEventListener("input", (e) => desenhar(e.target.value.trim().toLowerCase()));
+let espera;
+document.getElementById("busca").addEventListener("input", (e) => {
+  clearTimeout(espera);
+  espera = setTimeout(() => carregar(e.target.value.trim()), 300);
+});
 
-try {
-  [listas.filme, listas.serie] = await Promise.all([listar("filme"), listar("serie")]);
-  desenhar();
-} catch (erro) {
-  console.error(erro);
-  const aviso = document.getElementById("aviso");
-  aviso.hidden = false;
-  aviso.textContent = "Não foi possível carregar o catálogo. Confira se o servidor está rodando.";
-}
+carregar();
